@@ -1,40 +1,9 @@
 const axios = require('axios')
-const debug = require('debug')('slash-command-template:ticket')
 const qs = require('querystring')
 const users = require('./users')
 const { addResultToSpreadsheet } = require('./google-spreadsheet')
+const { getProjectByRepo } = require('./projects')
 
-const NAMES = {
-  'farewill/frontend': 'Frontend',
-  'farewill/app': 'API',
-  'farewill/pdf': 'PDF',
-  'farewill/pulling-data': 'Pulling Data',
-  'farewill/hubot': 'Hubot',
-  'other': 'Other'
-}
-
-const COLOURS = {
-  'farewill/frontend': '#fc7e84',
-  'farewill/app': '#f8fae4',
-  'farewill/pdf': '#f7f38e',
-  'farewill/pulling-data': '#bae6e0',
-  'farewill/hubot': '#333',
-  'other': '#495456'
-}
-
-const EMOJIS = {
-  'farewill/frontend': '⚰️',
-  'farewill/app': '⛪️',
-  'farewill/pdf': '📝',
-  'farewill/pulling-data': '📊',
-  'farewill/hubot': '🤖',
-  'other': '',
-}
-
-/*
- *  Send ticket creation confirmation via
- *  chat.postMessage to the user who created it
- */
 const sendConfirmation = (release) => {
   const fields = [
     {
@@ -68,10 +37,11 @@ const sendConfirmation = (release) => {
     text += release.notes
   }
   
+  const project = getProjectByRepo(release.repo)
   
   return axios.post('https://slack.com/api/chat.postMessage', qs.stringify({
     token: process.env.SLACK_ACCESS_TOKEN,
-    channel: process.env.SLACK_CHANNEL_ID,
+    channel: process.env.SLACK_CHANNEL_NAME,
     link_names: true,
     text,
     attachments: JSON.stringify([
@@ -79,9 +49,9 @@ const sendConfirmation = (release) => {
         author_name: release.userProfile.display_name_normalized,
         author_link: '/team/' + release.userProfile.team,
         author_icon: release.userProfile.image_24,
-        color: COLOURS[release.repo],
+        color: project.color,
         fields,
-        footer: NAMES[release.repo] + ' ' + EMOJIS[release.repo]
+        footer: project.name + ' ' + project.emoji
       }
     ])
   })).then((result) => {
