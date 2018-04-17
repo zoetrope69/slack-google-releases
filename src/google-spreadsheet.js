@@ -1,15 +1,23 @@
-const google = require('googleapis');
-const sheets = google.sheets('v4');
+const google = require('googleapis')
+const sheets = google.sheets('v4')
+
+let googleCredentials
+
+try {
+  googleCredentials = JSON.parse(process.env.GOOGLE_CREDENTIALS)
+} catch (e) {
+  throw new Error("Couldn't parse the Google credentials from the .env file.")
+}
 
 const jwtClient = new google.auth.JWT(
-  process.env.GOOGLE_CLIENT_EMAIL, 
+  googleCredentials.client_email, 
   null,
-  JSON.parse(process.env.GOOGLE_PRIVATE_KEY).key,
+  googleCredentials.private_key,
   ['https://www.googleapis.com/auth/spreadsheets'],
   null
 )
 
-const addResultToSpreadsheet = (desc, repo, code, ticket, notes) => {
+const addResultToSpreadsheet = (summary, repo, code, ticket, notes) => {
   jwtClient.authorize((err, tokens) => {
     if (err) {
       console.log(err)
@@ -24,7 +32,7 @@ const addResultToSpreadsheet = (desc, repo, code, ticket, notes) => {
       resource: {
         range: "'Releases'!A1:F1",
         majorDimension: "ROWS",
-        values: [['' + repo, desc, code, ticket, notes, new Date()]]
+        values: [['' + repo, summary, code, ticket, notes, new Date()]]
       }
     }
 
@@ -33,7 +41,7 @@ const addResultToSpreadsheet = (desc, repo, code, ticket, notes) => {
         return console.log(err)
       }
 
-      console.log(JSON.stringify(response, null, 2))
+      console.log('Release created ', summary)
     })
   })
 }
