@@ -70,4 +70,3 @@ the ID is `1N-sdhajkdhsa82hd-rWqmkmU4pc`
 
 + Do /release anywhere and it'll post to #releases
 + You can fiddle with your Slack app and make it look prettier.
-+ If you get stuck with this message Zac on Twitter: [@zaccolley](https://twitter.com/zaccolley)
